@@ -1,0 +1,8 @@
+loggingEnabled: true
+logDirectory: logs
+maxLogFileSizeInKB: 128
+maxTotalLogFileSizeInKB: 1024
+maxLogFiles: 20
+devErrorsEnabled: true
+# The reqeust limit is being set in the web.config and should NOT be set here, as it will override the web.config value
+# maxRequestBufferSize: 1048576

@@ -1,0 +1,22 @@
+{
+  "name": "slack-bot-vsts-pullrequests",
+  "version": "0.0.1",
+  "description": "A Slack bot that gathers all the pull requests from all repositories in Visual Studio Team Services",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mbukosky/slack-bot-vsts-pullrequests.git"
+  },
+  "author": "Michael Bukosky <mbukosky@gmail.com>",
+  "dependencies": {
+    "axios": "^0.9.1",
+    "body-parser": "^1.10.0",
+    "express": "^4.10.4",
+    "lodash": "^4.9.0",
+    "newrelic": "^1.26.2",
+    "node-cache": "^3.2.1",
+    "request": "^2.49.0"
+  }
+}

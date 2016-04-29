@@ -67,34 +67,33 @@ function refreshCache() {
               axios.all(getPullRequests(repos))
                 .then(function(results) {
 
+                  var sorted = _.orderBy(_.flatMap(results, "data.value"), "creationDate", "desc");
+
                   var createdByArr = {};
                   var reviewersArr = {};
-                  _.forEach(results, function(x) {
-                    if (x.data.count > 0) {
-                      _.forEach(x.data.value, function(y) {
 
-                        var remote = _.find(repos, ['id', y.repository.id]);
-                        var url = util.format('<%s/pullrequest/%s?view=discussion|#%d> %s - %s', remote.remoteUrl, y.pullRequestId, y.pullRequestId, remote.name, y.title);
+                  _.forEach(sorted, function(y) {
 
-                        var createdBy = createdByArr[y.createdBy.id];
-                        if (createdBy == undefined) {
-                          createdBy = url;
-                        } else {
-                          createdBy += '\n' + url;
-                        }
-                        createdByArr[y.createdBy.id] = createdBy;
+                    var remote = _.find(repos, ['id', y.repository.id]);
+                    var url = util.format('<%s/pullrequest/%s?view=discussion|#%d> %s - %s', remote.remoteUrl, y.pullRequestId, y.pullRequestId, remote.name, y.title);
 
-                        _.forEach(y.reviewers, function(reviewer) {
-                          var reviewBy = reviewersArr[reviewer.id];
-                          if (reviewBy == undefined) {
-                            reviewBy = url;
-                          } else {
-                            reviewBy += '\n' + url;
-                          }
-                          reviewersArr[reviewer.id] = reviewBy;
-                        });
-                      });
+                    var createdBy = createdByArr[y.createdBy.id];
+                    if (createdBy == undefined) {
+                      createdBy = url;
+                    } else {
+                      createdBy += '\n' + url;
                     }
+                    createdByArr[y.createdBy.id] = createdBy;
+
+                    _.forEach(y.reviewers, function(reviewer) {
+                      var reviewBy = reviewersArr[reviewer.id];
+                      if (reviewBy == undefined) {
+                        reviewBy = url;
+                      } else {
+                        reviewBy += '\n' + url;
+                      }
+                      reviewersArr[reviewer.id] = reviewBy;
+                    });
                   });
 
                   //Reload the caches with the temps

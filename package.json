@@ -17,6 +17,7 @@
     "lodash": "^4.9.0",
     "newrelic": "^1.26.2",
     "node-cache": "^3.2.1",
-    "request": "^2.49.0"
+    "request": "^2.49.0",
+    "time-ago": "^0.1.0"
   }
 }

@@ -5,6 +5,7 @@ var _ = require('lodash');
 var config = require('../config.js');
 var NodeCache = require("node-cache");
 var nr = require('newrelic');
+var ta = require('time-ago')();
 
 // Gloabl setup
 var vstsCache = new NodeCache();
@@ -84,6 +85,10 @@ function refreshCache() {
                       fields: [{
                         title: 'Created by',
                         value: pr.createdBy.displayName,
+                        short: true
+                      }, {
+                        title: 'Requested',
+                        value: ta.ago(pr.creationDate),
                         short: true
                       }]
                     };

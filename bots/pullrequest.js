@@ -78,10 +78,14 @@ function refreshCache() {
                     var remote = _.find(repos, ['id', pr.repository.id]);
                     var attachment = {
                       color: "#00b159",
-                      author_name: pr.createdBy.displayName,
                       title: '#' + pr.pullRequestId,
                       title_link: util.format('%s/pullrequest/%s?view=discussion', remote.remoteUrl, pr.pullRequestId),
-                      text: util.format('%s - %s', remote.name, pr.title)
+                      text: util.format('%s - %s', remote.name, pr.title),
+                      fields: [{
+                        title: 'Created by',
+                        value: pr.createdBy.displayName,
+                        short: true
+                      }]
                     };
 
                     var createdBy = createdByArr[pr.createdBy.id];

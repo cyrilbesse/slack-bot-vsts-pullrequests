@@ -67,30 +67,40 @@ function refreshCache() {
               axios.all(getPullRequests(repos))
                 .then(function(results) {
 
+                  // Order by the PRs created date
                   var sorted = _.orderBy(_.flatMap(results, "data.value"), "creationDate", "desc");
 
                   var createdByArr = {};
                   var reviewersArr = {};
 
-                  _.forEach(sorted, function(y) {
+                  _.forEach(sorted, function(pr) {
 
-                    var remote = _.find(repos, ['id', y.repository.id]);
-                    var url = util.format('<%s/pullrequest/%s?view=discussion|#%d> %s - %s', remote.remoteUrl, y.pullRequestId, y.pullRequestId, remote.name, y.title);
+                    var remote = _.find(repos, ['id', pr.repository.id]);
+                    var attachment = {
+                      color: "#00b159",
+                      author_name: pr.createdBy.displayName,
+                      title: '#' + pr.pullRequestId,
+                      title_link: util.format('%s/pullrequest/%s?view=discussion', remote.remoteUrl, pr.pullRequestId),
+                      text: util.format('%s - %s', remote.name, pr.title)
+                    };
 
-                    var createdBy = createdByArr[y.createdBy.id];
+                    var createdBy = createdByArr[pr.createdBy.id];
                     if (createdBy == undefined) {
-                      createdBy = url;
+                      createdBy = [attachment];
                     } else {
-                      createdBy += '\n' + url;
+                      createdBy.push(attachment);
                     }
-                    createdByArr[y.createdBy.id] = createdBy;
+                    createdByArr[pr.createdBy.id] = createdBy;
 
-                    _.forEach(y.reviewers, function(reviewer) {
+                    var team_attachment = _.merge({}, attachment, {
+                      color: "#f37735"
+                    });
+                    _.forEach(pr.reviewers, function(reviewer) {
                       var reviewBy = reviewersArr[reviewer.id];
                       if (reviewBy == undefined) {
-                        reviewBy = url;
+                        reviewBy = [team_attachment];
                       } else {
-                        reviewBy += '\n' + url;
+                        reviewBy.push(team_attachment);
                       }
                       reviewersArr[reviewer.id] = reviewBy;
                     });
@@ -143,10 +153,6 @@ function getPullRequests(repos) {
   });
 };
 
-function safeString(value) {
-  return _.isUndefined(value) ? '' : value;
-};
-
 module.exports = function(req, res, next) {
 
   //Only allow chats from ce teams
@@ -166,29 +172,27 @@ module.exports = function(req, res, next) {
   }
 
   var isTeamOption = req.body.text == 'team';
-  var message, text, color;
+  var message, attachments;
 
   if (isTeamOption) {
-    color = '#f37735';
-    text = reviewersCache.get(member.teamId);
+    attachments = reviewersCache.get(member.teamId);
     message = 'Active pull requests for your team:';
 
-    if (_.isEmpty(text)) {
+    if (_.isUndefined(attachments)) {
       message = 'Done and done, no active pull requests for your team';
-      text = null;
+      attachments = null;
     }
   } else {
-    color = '#00b159';
     message = 'Active pull requests for you:';
-    text = util.format('%s\n%s', safeString(createdCache.get(member.memberId)), safeString(reviewersCache.get(member.memberId)));
+    attachments = _.concat(createdCache.get(member.memberId) || [], reviewersCache.get(member.memberId) || [])
 
-    if (_.isEmpty(_.trim(text))) {
+    if (_.isEmpty(attachments)) {
       message = 'Done and done, you have no active pull requests';
-      text = null;
+      attachments = null;
     }
   }
 
-  return _.isEmpty(text) ?
+  return _.isEmpty(attachments) ?
     res.status(200).json({
       response_type: "ephemeral",
       text: message,
@@ -197,9 +201,6 @@ module.exports = function(req, res, next) {
     res.status(200).json({
       response_type: "ephemeral",
       text: message,
-      attachments: [{
-        color: color,
-        text: text
-      }]
+      attachments: attachments
     });
 }

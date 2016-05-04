@@ -78,7 +78,8 @@ function refreshCache() {
 
                     var remote = _.find(repos, ['id', pr.repository.id]);
                     var attachment = {
-                      color: "#00b159",
+                      approvals: getApprovalStatus(pr.reviewers),
+                      color: getPullRequestSummaryColor(pr),
                       title: '#' + pr.pullRequestId,
                       title_link: util.format('%s/pullrequest/%s?view=discussion', remote.remoteUrl, pr.pullRequestId),
                       text: util.format('%s - %s', remote.name, pr.title),
@@ -101,15 +102,12 @@ function refreshCache() {
                     }
                     createdByArr[pr.createdBy.id] = createdBy;
 
-                    var team_attachment = _.merge({}, attachment, {
-                      color: "#f37735"
-                    });
                     _.forEach(pr.reviewers, function(reviewer) {
                       var reviewBy = reviewersArr[reviewer.id];
                       if (reviewBy == undefined) {
-                        reviewBy = [team_attachment];
+                        reviewBy = [attachment];
                       } else {
-                        reviewBy.push(team_attachment);
+                        reviewBy.push(attachment);
                       }
                       reviewersArr[reviewer.id] = reviewBy;
                     });
@@ -129,6 +127,50 @@ function refreshCache() {
             });
         });
     });
+};
+
+//TODO: Also use Merge status
+//TODO: Also use Build status
+//TODO: Also use WorkItem status
+function getPullRequestSummaryColor(pullrequest) {
+  var weight = _.reduce(pullrequest.reviewers, function(sum, x) {
+    return sum + x.vote;
+  }, 0);
+
+  if (weight > 0)
+    return 'good';
+  else if (weight < 0)
+    return 'danger';
+  else
+    return '#E6DEDC'; //egg shell
+};
+
+function getApprovalStatus(reviewers) {
+  return _.reduce(reviewers, function(arr, x) {
+    var status = null;
+    switch (x.vote) {
+      case 10:
+        status = 'Approved';
+        break;
+      case 5:
+        status = 'Approved with suggestions';
+        break;
+      case 0:
+        status = 'No response';
+        break;
+      case -5:
+        status = 'Waiting for the author';
+        break;
+      case -10:
+        status = 'Rejected';
+        break;
+      default:
+        status = 'NA';
+    }
+
+    arr[x.id] = status;
+    return arr;
+  }, {});
 };
 
 function getRepositoriesCache() {
@@ -199,6 +241,22 @@ module.exports = function(req, res, next) {
       message = 'Done and done, you have no active pull requests';
       attachments = null;
     }
+  }
+
+  //Append any approvals from the requesting user
+  if (!_.isNull(attachments)) {
+    _.forEach(attachments, function(attachment) {
+      var approval = attachment.approvals[member.memberId];
+
+      attachment.fields.push({
+        title: 'Your approval',
+        value: approval || 'No response',
+        short: true
+      });
+
+      //Clean up so we don't send in the payload
+      delete attachment.approvals;
+    })
   }
 
   return _.isEmpty(attachments) ?

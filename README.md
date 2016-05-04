@@ -1,17 +1,21 @@
-# slack-bot-vsts-pullrequests
-
-A Slack bot that gathers all the pull requests from all repositories in Visual Studio Team Services
+slack-bot-vsts-pullrequests
 ===============================
 
-## Usage (via slack command)
+A Slack bot that gathers all the pull requests from all repositories in Visual Studio Team Services
 
-### View all pull requests for that you created or you are reviewing
+## Usage
+
+> View all pull requests for that you created or you are reviewing
 
 `/pullrequests me`
 
-### View all pull requests for that your team is reviewing
+![pull request for me](pullrequest_for_me.PNG)
+
+> View all pull requests for that your team is reviewing
 
 `/pullrequests team`
+
+![pull request for team](pullrequest_for_team.PNG)
 
 ## Adding Slack Command to your Team
 1. [Add Slash command to team](https://my.slack.com/services/new/slash-commands)

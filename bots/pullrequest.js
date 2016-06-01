@@ -113,10 +113,13 @@ function refreshCache() {
                     });
                   });
 
-                  //Reload the caches with the temps
+                  //Flush and reload the caches with the temps
+                  createdCache.flushAll();
                   _.forEach(createdByArr, function(value, key) {
                     createdCache.set(key, value);
                   });
+
+                  reviewersCache.flushAll();
                   _.forEach(reviewersArr, function(value, key) {
                     reviewersCache.set(key, value);
                   });
